@@ -164,12 +164,26 @@ const Component = () => {
 		}
 	}, [showStepTwo]);
 
+	const stepThree = createRef();
+	const [showStepThree, setShowStepThree] = useState(false);
+	useEffect(() => {
+		if (showStepThree) {
+			stepThree.current.scrollIntoView({ behavior: 'smooth' });
+		}
+	}, [showStepThree]);
+
 	const handleResetButton = () => {
 		setWallpaperType(null);
 		setAdderRows(createArrayOfLength(DEFAULT_ADDER_ROWS, 0))
 		setSubtractorRows(createArrayOfLength(DEFAULT_SUBTRACTOR_ROWS, 0))
 		stepOne.current.scrollIntoView({ behavior: 'smooth' });
+		setShowStepTwo(false)
+		setShowStepThree(false)
 	}
+	const handleContinueButton = () => {
+		setShowStepThree(true);
+	}
+	
 
 	const SelectWallpaperType = ({ setWallpaperType }) => {
 		return (
@@ -245,11 +259,12 @@ const Component = () => {
 		setUnitOfMeasure(currentUnitOfMeasure)
 	}, [adderArray, subtractorArray, wallpaperType])
 
-	const isProductPage = window.location.pathname.startsWith('/products/')
+	const isProductPage = window.location.pathname.startsWith('/products/');
+	const stepTwoAvailable = !showStepThree && !isProductPage
 
 	return (
 		<div class={createClassName('wrapper')}>
-			<div class={createClassName('step__outer step__one')} ref={stepOne}>
+			<div class={`${createClassName('step__outer step__one')}${!isProductPage && showStepThree ? ' visually-hidden' : ''}`} ref={stepOne}>
 				<p class={createClassName('step')}>
 					Step 1
 				</p>
@@ -260,7 +275,7 @@ const Component = () => {
 					Note: Calculations will differ between grounds.
 				</p>
 				<SelectWallpaperType setWallpaperType={setWallpaperTypeAndRecalculate} /></div>
-			<div class={showStepTwo ? 'step__outer step__two' : 'step__outer step__two visually-hidden'} ref={stepTwo}>
+			<div class={(showStepTwo && !showStepThree) || (showStepTwo && isProductPage) ? 'step__outer step__two' : 'step__outer step__two visually-hidden'} ref={stepTwo}>
 				<p class={createClassName('step')}>
 					Step 2
 				</p>
@@ -298,7 +313,7 @@ const Component = () => {
 						))}
 						{SHOW_ADD_REMOVE_ROW_BUTTONS && (
 							<button className="button" onClick={handleAddAdderRow}>
-								+ Add wall
+								Add wall
 							</button>
 						)}
 					</div>
@@ -327,13 +342,24 @@ const Component = () => {
 					))}
 					{SHOW_ADD_REMOVE_ROW_BUTTONS && (
 						<button className="button" onClick={handleAddSubtractorRow}>
-							+ Add area
+							Add area
 						</button>
 					)}
 					</div>
 				</div>
+				{!isProductPage &&
+				(
+					<div class={createClassName('btn-actions')}>
+						<button type="button" class="btn btn-continue" onClick={handleContinueButton}>
+							Continue
+						</button>
+						<button type="button" class="btn-back" onClick={handleResetButton}>
+							Back
+						</button>
+					</div>
+				)}
 			</div>
-			<div class={wallpaperType === null ? `visually-hidden ${createClassName('step__outer step__three')}` : createClassName('step__outer step__three')}>
+			<div class={wallpaperType !== null && (isProductPage || showStepThree) ? createClassName('step__outer step__three') : `visually-hidden ${createClassName('step__outer step__three')}`} ref={stepThree}>
 				<div class={createClassName('result-wrapper-outer')}>
 					<h3 class={createClassName('section-heading final-section-heading')}>
 						{`Estimate:`}
